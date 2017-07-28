@@ -86,7 +86,7 @@ final class CropperViewController: UIViewController {
     
     @IBAction func showHideOverlayAction(_ sender: AnyObject) {
         
-        if cropView.isoverlayViewActive {
+        if cropView.isOverlayViewActive {
             
             cropView.hideOverlayView(animationDuration: 0.3)
             
@@ -198,15 +198,15 @@ final class CropperViewController: UIViewController {
         // Inset for overlay action view
         
         /*
-        cropView.overlayView?.configuraiton.cropRectInsets.bottom = 50
+        cropView.overlayView?.configuration.cropRectInsets.bottom = 50
         */
         
         // Custom overlay view configuration
         
         /*
-        var customConfiguraiton = AKImageCropperCropViewConfiguration()
-            customConfiguraiton.cropRectInsets.bottom = 50
-        cropView.overlayView = CustomImageCropperOverlayView(configuraiton: customConfiguraiton)
+        var customConfiguration = AKImageCropperCropViewConfiguration()
+            customConfiguration.cropRectInsets.bottom = 50
+        cropView.overlayView = CustomImageCropperOverlayView(configuration: customConfiguration)
         */
         
         cropView.delegate = self
