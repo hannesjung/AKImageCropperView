@@ -127,6 +127,24 @@ final class CropperViewController: UIViewController {
         angle = 0.0
     }
     
+    // MARK: - Aspect ratio
+    
+    @IBAction func onFree(_ sender: Any) {
+        cropView.aspectRatio = .custom
+    }
+    
+    @IBAction func onPortrait(_ sender: Any) {
+        cropView.aspectRatio = .ratio(x: 9, y: 16)
+    }
+    
+    @IBAction func onLandscape(_ sender: Any) {
+        cropView.aspectRatio = .ratio(x: 16, y: 9)
+    }
+    
+    @IBAction func onSquare(_ sender: Any) {
+        cropView.aspectRatio = .ratio(x: 1, y: 1)
+    }
+    
     // MARK: -  Life Cycle
     
     override func viewDidLoad() {

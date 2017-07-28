@@ -829,6 +829,56 @@ open class AKImageCropperOverlayView: UIView {
         }
     }
     
+    // MARK: - Aspect ratio
+    
+    open var aspectRatio = CropRatio.custom {
+        didSet {
+            cropRect = rectForAspectRatio(aspectRatio)
+                
+            /* Update UI for the crop rectange */
+                
+            layoutSubviews()
+                
+            /* Delegates */
+                
+            delegate?.cropperOverlayViewDidChangeCropRect(self, cropRect)
+        }
+    }
+    
+    private func rectForAspectRatio(_ aspectRatio: CropRatio) -> CGRect {
+        var rect = cropRect
+        var ratio = image.size.height / image.size.width
+        
+        switch aspectRatio {
+        case .ratio(let x, let y):
+            ratio = y / x
+        default: break
+        }
+        
+        let h = rect.size.height
+        rect.size.height = rect.size.width * ratio
+        rect.origin.y += (h - rect.size.height) * 0.5
+        
+        return rect
+    }
+    
+    private func cropFrameForRatio(_ ratio: CGFloat) -> CGRect {
+        let rect = self.bounds
+        
+        // Use width
+        var w = rect.width
+        var h = w / ratio
+        
+        if h <= rect.height {
+            return CGRect(x: rect.origin.x + (rect.size.width - w) * 0.5, y: rect.origin.y + (rect.size.height - h) * 0.5, width: w, height: h)
+        }
+        
+        // User height
+        h = rect.height
+        w = h * ratio
+        return CGRect(x: rect.origin.x + (rect.size.width - w) * 0.5, y: rect.origin.y + (rect.size.height - h) * 0.5, width: w, height: h)
+    }
+    
     // MARK: - Touches
     
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -859,80 +909,164 @@ open class AKImageCropperOverlayView: UIView {
         
         let cropRectMaxFrame = cropperView.reversedFrameWithInsets
         
-        if activeCropAreaPart.contains(.topEdge) {
+        /* Adjust for aspect ratio */
+        
+        if let ratio = aspectRatio.ratio {
+            var aspectRect = cropRect
+            let dx = translationPoint.x
+            let dy = translationPoint.y
+            var d: CGFloat = 0.0
             
-            cropRect.origin.y += translationPoint.y
-            cropRect.size.height -= translationPoint.y
             
-            let pointInEdge = touchesBegan.touch.y - touchesBegan.cropRect.minY
-            let minStickPoint = pointInEdge + cropRectMaxFrame.minY
-            let maxStickPoint = pointInEdge + touchesBegan.cropRect.maxY - configuration.minCropRectSize.height
-            
-            if point.y > maxStickPoint || cropRect.height < configuration.minCropRectSize.height {
-                cropRect.origin.y = touchesBegan.cropRect.maxY - configuration.minCropRectSize.height
-                cropRect.size.height = configuration.minCropRectSize.height
+            // Top left
+            if activeCropAreaPart.contains(.leftEdge) && activeCropAreaPart.contains(.topEdge) {
+                d = (-dx - dy) * 0.5
+                aspectRect.origin.x -= d
+                aspectRect.origin.y -= d / ratio
+            }
+                
+            // Top right
+            else if activeCropAreaPart.contains(.rightEdge) && activeCropAreaPart.contains(.topEdge) {
+                d = (dx - dy) * 0.5
+                aspectRect.origin.y -= d / ratio
+            }
+                
+            // Bottom left
+            else if activeCropAreaPart.contains(.leftEdge) && activeCropAreaPart.contains(.bottomEdge) {
+                d = (-dx + dy) * 0.5
+                aspectRect.origin.x -= d
+            }
+                
+            // Bottom right
+            else if activeCropAreaPart.contains(.rightEdge) && activeCropAreaPart.contains(.bottomEdge) {
+                d = (dx + dy) * 0.5
+            }
+                
+            // Left
+            else if activeCropAreaPart.contains(.leftEdge) {
+                d = -dx
+                aspectRect.origin.x -= d
+                aspectRect.origin.y -= d / ratio * 0.5
+            }
+                
+            // Top
+            else if activeCropAreaPart.contains(.topEdge) {
+                d = -dy
+                aspectRect.origin.x -= d * 0.5
+                aspectRect.origin.y -= d / ratio
+            }
+                
+            // Right
+            else if activeCropAreaPart.contains(.rightEdge) {
+                d = dx
+                aspectRect.origin.y -= d / ratio * 0.5
+            }
+                
+            // Bottom
+            else if activeCropAreaPart.contains(.bottomEdge) {
+                d = dy
+                aspectRect.origin.x -= d * 0.5
             }
             
-            if point.y < minStickPoint {
-                cropRect.origin.y = cropRectMaxFrame.minY
-                cropRect.size.height = touchesBegan.cropRect.maxY - cropRectMaxFrame.minY
+            // Adjust crop rect
+            aspectRect.size.width += d
+            aspectRect.size.height += d / ratio
+            
+            // Check for max size
+            if aspectRect.size.width <= configuration.minCropRectSize.width {
+                aspectRect.origin = cropRect.origin
+                aspectRect.size.width = configuration.minCropRectSize.width
+                aspectRect.size.height = aspectRect.size.width / ratio
+            }
+            
+            if aspectRect.size.height <= configuration.minCropRectSize.height {
+                aspectRect.origin = cropRect.origin
+                aspectRect.size.height = configuration.minCropRectSize.height
+                aspectRect.size.width = aspectRect.size.height * ratio
+            }
+            
+            cropRect = aspectRect
+            
+        }
+        
+        /* Free ratio */
+        
+        else {
+            if activeCropAreaPart.contains(.topEdge) {
+                
+                cropRect.origin.y += translationPoint.y
+                cropRect.size.height -= translationPoint.y
+                
+                let pointInEdge = touchesBegan.touch.y - touchesBegan.cropRect.minY
+                let minStickPoint = pointInEdge + cropRectMaxFrame.minY
+                let maxStickPoint = pointInEdge + touchesBegan.cropRect.maxY - configuration.minCropRectSize.height
+                
+                if point.y > maxStickPoint || cropRect.height < configuration.minCropRectSize.height {
+                    cropRect.origin.y = touchesBegan.cropRect.maxY - configuration.minCropRectSize.height
+                    cropRect.size.height = configuration.minCropRectSize.height
+                }
+                
+                if point.y < minStickPoint {
+                    cropRect.origin.y = cropRectMaxFrame.minY
+                    cropRect.size.height = touchesBegan.cropRect.maxY - cropRectMaxFrame.minY
+                }
+            }
+            
+            if activeCropAreaPart.contains(.rightEdge) {
+                
+                cropRect.size.width += translationPoint.x
+                
+                let pointInEdge = touchesBegan.touch.x - touchesBegan.cropRect.maxX
+                let minStickPoint = pointInEdge + touchesBegan.cropRect.minX + configuration.minCropRectSize.width
+                let maxStickPoint = pointInEdge + cropRectMaxFrame.maxX
+                
+                if  point.x > maxStickPoint {
+                    cropRect.size.width =  cropRectMaxFrame.maxX - cropRect.origin.x
+                }
+                
+                if point.x < minStickPoint || cropRect.width < configuration.minCropRectSize.width {
+                    cropRect.size.width = configuration.minCropRectSize.width
+                }
+            }
+            
+            if activeCropAreaPart.contains(.bottomEdge) {
+                
+                cropRect.size.height += translationPoint.y
+                
+                let pointInEdge = touchesBegan.touch.y - touchesBegan.cropRect.maxY
+                let minStickPoint = pointInEdge + touchesBegan.cropRect.minY + configuration.minCropRectSize.height
+                let maxStickPoint = pointInEdge + cropRectMaxFrame.maxY
+                
+                if  point.y > maxStickPoint {
+                    cropRect.size.height = cropRectMaxFrame.maxY - cropRect.origin.y
+                }
+                
+                if point.y < minStickPoint || cropRect.height < configuration.minCropRectSize.height {
+                    cropRect.size.height = configuration.minCropRectSize.height
+                }
+            }
+            
+            if activeCropAreaPart.contains(.leftEdge) {
+                
+                cropRect.origin.x += translationPoint.x
+                cropRect.size.width -= translationPoint.x
+                
+                let pointInEdge = touchesBegan.touch.x - touchesBegan.cropRect.minX
+                let minStickPoint = pointInEdge + cropRectMaxFrame.minX
+                let maxStickPoint = pointInEdge + touchesBegan.cropRect.maxX - configuration.minCropRectSize.width
+                
+                if  point.x > maxStickPoint || cropRect.width < configuration.minCropRectSize.width {
+                    cropRect.origin.x = touchesBegan.cropRect.maxX - configuration.minCropRectSize.width
+                    cropRect.size.width = configuration.minCropRectSize.width
+                }
+                
+                if point.x < minStickPoint {
+                    cropRect.origin.x = cropRectMaxFrame.minX
+                    cropRect.size.width = touchesBegan.cropRect.maxX - cropRectMaxFrame.minX
+                }
             }
         }
         
-        if activeCropAreaPart.contains(.rightEdge) {
-            
-            cropRect.size.width += translationPoint.x
-            
-            let pointInEdge = touchesBegan.touch.x - touchesBegan.cropRect.maxX
-            let minStickPoint = pointInEdge + touchesBegan.cropRect.minX + configuration.minCropRectSize.width
-            let maxStickPoint = pointInEdge + cropRectMaxFrame.maxX
-            
-            if  point.x > maxStickPoint {
-                cropRect.size.width =  cropRectMaxFrame.maxX - cropRect.origin.x
-            }
-            
-            if point.x < minStickPoint || cropRect.width < configuration.minCropRectSize.width {
-                cropRect.size.width = configuration.minCropRectSize.width
-            }
-        }
-        
-        if activeCropAreaPart.contains(.bottomEdge) {
-
-            cropRect.size.height += translationPoint.y
-            
-            let pointInEdge = touchesBegan.touch.y - touchesBegan.cropRect.maxY
-            let minStickPoint = pointInEdge + touchesBegan.cropRect.minY + configuration.minCropRectSize.height
-            let maxStickPoint = pointInEdge + cropRectMaxFrame.maxY
-            
-            if  point.y > maxStickPoint {
-                cropRect.size.height = cropRectMaxFrame.maxY - cropRect.origin.y
-            }
-            
-            if point.y < minStickPoint || cropRect.height < configuration.minCropRectSize.height {
-                cropRect.size.height = configuration.minCropRectSize.height
-            }
-        }
-        
-        if activeCropAreaPart.contains(.leftEdge) {
-            
-            cropRect.origin.x += translationPoint.x
-            cropRect.size.width -= translationPoint.x
-            
-            let pointInEdge = touchesBegan.touch.x - touchesBegan.cropRect.minX
-            let minStickPoint = pointInEdge + cropRectMaxFrame.minX
-            let maxStickPoint = pointInEdge + touchesBegan.cropRect.maxX - configuration.minCropRectSize.width
-            
-            if  point.x > maxStickPoint || cropRect.width < configuration.minCropRectSize.width {
-                cropRect.origin.x = touchesBegan.cropRect.maxX - configuration.minCropRectSize.width
-                cropRect.size.width = configuration.minCropRectSize.width
-            }
-            
-            if point.x < minStickPoint {
-                cropRect.origin.x = cropRectMaxFrame.minX
-                cropRect.size.width = touchesBegan.cropRect.maxX - cropRectMaxFrame.minX
-            }
-        }
-
         /* Update UI for the crop rectange */
         
         layoutSubviews()

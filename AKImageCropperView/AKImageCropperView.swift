@@ -25,6 +25,18 @@ import UIKit
 
 typealias CGPointPercentage = CGPoint
 
+public enum CropRatio {
+    case custom
+    case ratio(x: CGFloat, y: CGFloat)
+    
+    var ratio: CGFloat? {
+        switch self {
+        case .custom: return nil
+        case .ratio(let x, let y): return x / y
+        }
+    }
+}
+
 open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate, AKImageCropperOverlayViewDelegate {
     
     /** Current rotation angle */
@@ -127,6 +139,14 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
     /** Saved Scroll View parameters before complex layout animation */
     
     fileprivate var savedProperty = SavedProperty()
+    
+    // MARK: Aspect ratio
+    
+    open var aspectRatio = CropRatio.custom {
+        didSet {
+            overlayView?.aspectRatio = aspectRatio
+        }
+    }
     
     // MARK: Accessing the Displayed Images
     
