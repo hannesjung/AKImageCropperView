@@ -145,6 +145,12 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
     open var aspectRatio = CropRatio.custom {
         didSet {
             overlayView?.aspectRatio = aspectRatio
+            
+            // Zoom after aspect ratio change
+            switch aspectRatio {
+            case .ratio(_, _): afterInteraction()
+            default: break
+            }
         }
     }
     

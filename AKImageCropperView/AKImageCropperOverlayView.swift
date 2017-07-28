@@ -850,9 +850,9 @@ open class AKImageCropperOverlayView: UIView {
         var ratio = image.size.height / image.size.width
         
         switch aspectRatio {
+        case .custom: return rect
         case .ratio(let x, let y):
             ratio = y / x
-        default: break
         }
         
         let h = rect.size.height

@@ -31,7 +31,7 @@ public struct AKImageCropperCropViewConfiguration {
     //  MARK: Crop rectangle
     
     /// Delay before the crop rectangle will scale to fit cropper view frame edges.
-    public var zoomingToFitDelay: TimeInterval = 1.0
+    public var zoomingToFitDelay: TimeInterval = 0.5
 
     /**
      Animation options for layout transitions.
