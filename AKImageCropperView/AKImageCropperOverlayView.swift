@@ -833,15 +833,18 @@ open class AKImageCropperOverlayView: UIView {
     
     open var aspectRatio = CropRatio.custom {
         didSet {
-            cropRect = rectForAspectRatio(aspectRatio)
+            UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 2.0, options: [], animations: { 
+                self.cropRect = self.rectForAspectRatio(self.aspectRatio)
                 
-            /* Update UI for the crop rectange */
+                /* Update UI for the crop rectange */
                 
-            layoutSubviews()
+                self.layoutSubviews()
                 
-            /* Delegates */
+                /* Delegates */
                 
-            delegate?.cropperOverlayViewDidChangeCropRect(self, cropRect)
+                self.delegate?.cropperOverlayViewDidChangeCropRect(self, self.cropRect)
+            }, completion: nil)
+            
         }
     }
     
