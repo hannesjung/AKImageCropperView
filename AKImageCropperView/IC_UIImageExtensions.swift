@@ -50,13 +50,15 @@ extension UIImage {
         
         let rotatedSize = rotatedViewBox.frame.size
         
-        UIGraphicsBeginImageContext(rotatedSize)
+        UIGraphicsBeginImageContextWithOptions(rotatedSize, true, 0)
         
         // Create the bitmap context
         
         guard let context = UIGraphicsGetCurrentContext() else {
             return nil
         }
+        
+        context.interpolationQuality = .high
         
         context.translateBy(x: rotatedSize.width / 2.0, y: rotatedSize.height / 2.0)
         context.rotate(by: CGFloat(angle))
