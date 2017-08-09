@@ -14,13 +14,15 @@ extension UIImage {
     
     func ic_imageInRect(_ rect: CGRect) -> UIImage? {
         
-        UIGraphicsBeginImageContext(rect.size)
+        UIGraphicsBeginImageContextWithOptions(rect.size, true, 0)
         
         // Create the bitmap context
         
         guard let context = UIGraphicsGetCurrentContext() else {
             return nil
         }
+        
+        context.interpolationQuality = .high
         
         // Sets the clipping path to the intersection of the current clipping path with the area defined by the specified rectangle.
         
