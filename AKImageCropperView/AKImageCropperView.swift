@@ -145,6 +145,7 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
     open var aspectRatio = CropRatio.custom {
         didSet {
             overlayView?.aspectRatio = aspectRatio
+            didAspectRatioChange = true
             
             // Zoom after aspect ratio change
             switch aspectRatio {
@@ -182,6 +183,8 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
     
     /** Returns the image edited state flag. */
     
+    var didAspectRatioChange = false
+    
     open var isEdited: Bool {
         
         guard let image = image else {
@@ -190,7 +193,7 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
 
         let fitScaleMultiplier = ic_CGSizeFitScaleMultiplier(image.size, relativeToSize: reversedFrameWithInsets.size)
         
-        return angle != 0 || fitScaleMultiplier != scrollView.minimumZoomScale || fitScaleMultiplier != scrollView.zoomScale
+        return angle != 0 || fitScaleMultiplier != scrollView.minimumZoomScale || fitScaleMultiplier != scrollView.zoomScale || didAspectRatioChange
     }
     
     /** Determines the overlay view current state. Default is false. */
@@ -553,6 +556,7 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
             
             /* */
             
+            self.didAspectRatioChange = false
             self.isAnimation = false
             self.isOverlayViewActive = false
             self.layoutByImage = false
@@ -635,6 +639,7 @@ open class AKImageCropperView: UIView, UIScrollViewDelegate, UIGestureRecognizer
         savedProperty = SavedProperty()
         angle = 0
         cancelZoomingTimer()
+        didAspectRatioChange = false
         
         let _animations: () -> Void = { _ in
             
