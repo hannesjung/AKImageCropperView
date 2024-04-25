@@ -37,14 +37,14 @@ final class CropperViewController: UIViewController {
         guard !cropView.isEdited else {
             
             let alertController = UIAlertController(title: "Warning!", message:
-                "All changes will be lost.", preferredStyle: UIAlertControllerStyle.alert)
+                "All changes will be lost.", preferredStyle: .alert)
             
-            alertController.addAction(UIAlertAction(title: "Yes", style: UIAlertActionStyle.cancel, handler: { _ in
+            alertController.addAction(UIAlertAction(title: "Yes", style: .cancel, handler: { _ in
                 
                 _ = self.navigationController?.popViewController(animated: true)
             }))
             
-            alertController.addAction(UIAlertAction(title: "No", style: UIAlertActionStyle.default, handler: nil))
+            alertController.addAction(UIAlertAction(title: "No", style: .default, handler: nil))
             
             present(alertController, animated: true, completion: nil)
             return
@@ -90,7 +90,7 @@ final class CropperViewController: UIViewController {
             
             cropView.hideOverlayView(animationDuration: 0.3)
             
-            UIView.animate(withDuration: 0.3, delay: 0, options: UIViewAnimationOptions.curveLinear, animations: {
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveLinear, animations: {
                 self.overlayActionView.alpha = 0
                 
             }, completion: nil)
@@ -99,7 +99,7 @@ final class CropperViewController: UIViewController {
             
             cropView.showOverlayView(animationDuration: 0.3)
             
-            UIView.animate(withDuration: 0.3, delay: 0.3, options: UIViewAnimationOptions.curveLinear, animations: {
+            UIView.animate(withDuration: 0.3, delay: 0.3, options: .curveLinear, animations: {
                 self.overlayActionView.alpha = 1
                 
             }, completion: nil)

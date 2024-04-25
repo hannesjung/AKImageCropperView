@@ -23,7 +23,7 @@
 
 import UIKit
 
-protocol AKImageCropperOverlayViewDelegate : class {
+protocol AKImageCropperOverlayViewDelegate : AnyObject {
     func cropperOverlayViewDidChangeCropRect(_ view: AKImageCropperOverlayView, _ cropRect: CGRect)
 }
 
